@@ -1,6 +1,17 @@
-# CyberDog Inspection System
+# GuardDog-Q CyberDog Inspection System
 
-CyberDog + Jetson Orin + ROS 2 的巡检项目源码整理版。仓库保留 Web 控制、任务调度、Nav2 接入、巡检执行、视觉进程管理和环境传感器接入代码；模型、TensorRT Engine、厂商 SDK、地图和来源不明确的第三方源码不上传。
+GuardDog-Q 是一套基于 CyberDog、Jetson Orin 和 ROS 2 的多模态四足机器人自主巡检系统。系统通过 Web 端下发建图、导航、巡检和视觉检测任务，由 Orin 负责任务调度、机器人导航、算法启停、异常判断与巡检数据管理。
+
+系统支持 SLAM 建图与定位、预设点位巡检、动态避障、人员识别、表盘读数、环境传感器采集及前端告警追溯。
+
+## 核心功能
+
+- Web 端一键启动建图、导航、巡检和视觉检测服务。
+- 基于 Cartographer、AMCL 和 Nav2 完成建图、定位与路径规划。
+- CyberDog 自主移动、巡检任务暂停恢复及实时动态避障。
+- 视觉算法按需启停，支持人员识别、表盘检测等巡检任务。
+- 环境传感器与视觉检测并行运行，异常结果统一汇总。
+- 告警截图、时间、点位、传感器数据和处置结果记录与查询。
 
 ## 实机演示
 
@@ -33,78 +44,25 @@ CyberDog + Jetson Orin + ROS 2 的巡检项目源码整理版。仓库保留 Web
   </tr>
 </table>
 
-## 代码目录
+## 项目结构
 
 ```text
 ros2_packages/
-├─ cyberdog_web_bridge/       Web API、WebSocket、服务启停和机器人控制
-├─ cyberdog_inspection/       巡检路径接口、Nav2 Action 执行、暂停/恢复
-├─ cyberdog_nav2_lidar/       Cartographer、AMCL、Nav2 配置和速度桥接
-└─ sensor_data/               串口环境传感器采集与 HTTP 回调
+├─ cyberdog_web_bridge/       Web 控制、任务下发与状态推送
+├─ cyberdog_inspection/       巡检任务执行与 Nav2 接入
+├─ cyberdog_nav2_lidar/       建图、定位、导航与速度桥接
+└─ sensor_data/               环境传感器数据采集
 
 robot_vision/cyberdog_ai_pkg/
-├─ scripts/                   视觉进程管理、结果聚合、WebSocket 网关
-├─ launch/                    视觉服务启动文件
-├─ msg/                       统一检测结果消息
-└─ srv/                       动态启停检测器服务
+├─ scripts/                   视觉服务管理、检测结果聚合与告警
+├─ launch/                    ROS 2 启动文件
+├─ msg/                       检测结果消息
+└─ srv/                       检测器动态启停服务
 ```
-
-## 主要代码入口
-
-| 功能 | 文件 |
-| --- | --- |
-| Web 服务、REST/WS、任务与进程调度 | [`bridge_node.py`](ros2_packages/cyberdog_web_bridge/cyberdog_web_bridge/bridge_node.py) |
-| 前端控制逻辑 | [`app.js`](ros2_packages/cyberdog_web_bridge/cyberdog_web_bridge/static/app.js) |
-| Nav2/Cartographer/AMCL 启动 | [`bringup.launch.py`](ros2_packages/cyberdog_nav2_lidar/launch/bringup.launch.py) |
-| Nav2 参数与动态避障配置 | [`nav2_params.yaml`](ros2_packages/cyberdog_nav2_lidar/config/nav2_params.yaml) |
-| CyberDog 速度指令桥接 | [`cmd_vel_bridge.py`](ros2_packages/cyberdog_nav2_lidar/scripts/cmd_vel_bridge.py) |
-| 时间戳与 TF 数据修正 | [`fix_cyberdog_timestamps.py`](ros2_packages/cyberdog_nav2_lidar/scripts/fix_cyberdog_timestamps.py) |
-| 巡检任务实现 | [`local_inspection.cpp`](ros2_packages/cyberdog_inspection/src/local_inspection.cpp) |
-| Nav2 Action 客户端 | [`nav2_client.cpp`](ros2_packages/cyberdog_inspection/src/nav2_client.cpp) |
-| 视觉算法进程按需启停 | [`vision_runtime_manager.py`](robot_vision/cyberdog_ai_pkg/scripts/vision_runtime_manager.py) |
-| 多检测器结果聚合与告警保存 | [`vision_manager_node.py`](robot_vision/cyberdog_ai_pkg/scripts/vision_manager_node.py) |
-| 狗端视觉 WebSocket 网关 | [`vision_ws_gateway.py`](robot_vision/cyberdog_ai_pkg/scripts/vision_ws_gateway.py) |
-| 环境传感器服务 | [`typec_sensor_server.py`](ros2_packages/sensor_data/typec_sensor_server.py) |
-
-## 已包含的接口
-
-Web bridge 提供的主要接口包括：
-
-- 建图、地图保存、初始位姿和导航目标下发。
-- Nav2、巡检服务和视觉检测器启动/停止。
-- CyberDog 模式、步态、速度、急停和相机控制。
-- 巡检初始化、开始、暂停、恢复和停止。
-- 地图、规划路径、机器人状态和传感器数据实时推送。
-- 仪表点位、读数历史、视觉告警和截图查询。
-
-接口实现集中在 `bridge_node.py` 的 `_create_app()`。
-
-## 视觉代码边界
-
-现有 YOLOv8 检测底层基于 TensorRTx，并针对 CyberDog 的旧 TensorRT 7/AArch64 环境做过适配。但当前副本来自原公司环境，无法确认所有中间修改的权属，因此公开目录不包含 `thirdparty/trt_yolov8`。
-
-仓库保留自己编写的 ROS 2 运行时管理、检测结果转换、告警聚合和 Web 接入代码。具体适配内容记录在 [`YOLOV8_TRT7_PORTING.md`](docs/YOLOV8_TRT7_PORTING.md)。
-
-## 导航代码边界
-
-当前机器狗巡检运行时使用 Cartographer/AMCL、Nav2、Smac Hybrid-A*、MPPI 和巡检包的路径生成接口。
-
-[QIanKin/MOCHA](https://github.com/QIanKin/MOCHA) 是独立的轨迹优化/运动规划项目，不是本仓库的运行时依赖，不复制进来，也不使用 Git submodule。README 核对时对应提交为 [`e992abd`](https://github.com/QIanKin/MOCHA/tree/e992abded69f5fe68e679acaaf7cb73bb354f4c4)。
 
 ## 未上传内容
 
 - `*.onnx`、`*.engine`、`*.pt`、`*.wts` 和 Paddle 模型。
 - CyberDog、相机、雷达 SDK 及动态库。
-- `build/`、`install/`、`log/`、ROS bag 和生成地图。
-- RTSP 密码、签名 URL、真实设备 IP 和现场配置。
-- 来源或许可证尚未确认的第三方实现。
 
-第三方依赖和代码权属说明见 [`THIRD_PARTY.md`](docs/THIRD_PARTY.md) 与 [`SCOPE_AND_OWNERSHIP.md`](docs/SCOPE_AND_OWNERSHIP.md)。
-
-## 检查
-
-```powershell
-powershell -ExecutionPolicy Bypass -File ./scripts/check_public_release.ps1
-```
-
-脚本检查模型/二进制产物、大文件、私钥、带密码的 RTSP 地址和常见令牌。当前公开版本是依赖真实 CyberDog/Jetson 环境的源码展示，不包含完整硬件运行镜像。
+轨迹优化与运动规划项目：[QIanKin/MOCHA](https://github.com/QIanKin/MOCHA)
