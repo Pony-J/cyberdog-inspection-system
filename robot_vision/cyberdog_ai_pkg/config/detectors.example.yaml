@@ -1,0 +1,24 @@
+vision_runtime_manager:
+  ros__parameters:
+    workspace_dir: /opt/cyberdog/vision_ws
+    image_topic: /ROBOT_NAMESPACE/camera/color/image_raw
+    body_topic: /ROBOT_NAMESPACE/body
+    fire_topic: /ROBOT_NAMESPACE/fire_alarm
+    fall_topic: /ROBOT_NAMESPACE/fall_alarm
+    smoke_topic: /ROBOT_NAMESPACE/smoke_alarm
+    gather_topic: /ROBOT_NAMESPACE/gather_alarm
+    meter_topic: /ROBOT_NAMESPACE/meter
+    runtime_status_topic: /vision/runtime_status
+    static_enabled_detectors: []
+    sync_period_sec: 1.0
+
+vision_manager_node:
+  ros__parameters:
+    available_detectors: [person, meter, fire, fall, smoke, gather]
+    enabled_detectors: [person, meter]
+    annotated_ws_fps: 5.0
+    stale_detection_sec: 1.0
+    alarm_log_dir: ./runtime_data/alarms
+    alarm_cooldown_sec: 5.0
+
+# Engine and model paths are local deployment settings. Do not commit them.

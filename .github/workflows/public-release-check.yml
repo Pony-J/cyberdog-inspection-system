@@ -1,0 +1,18 @@
+name: public-release-check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  audit:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for secrets and large artifacts
+        shell: pwsh
+        run: ./scripts/check_public_release.ps1
+      - name: Check Python syntax
+        run: python -m compileall -q ros2_packages robot_vision
+      - name: Check frontend JavaScript syntax
+        run: node --check ros2_packages/cyberdog_web_bridge/cyberdog_web_bridge/static/app.js

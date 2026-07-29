@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package inspection;
+
+// The service definition.
+service MSTCService {
+  rpc Plan (PlanRequest) returns (PlanResponse);
+}
+
+message Node {
+    int32 row = 1;
+    int32 col = 2;
+}
+
+message Edge {
+    Node in_node = 1;
+    Node out_node = 2;
+    float weight = 3;
+}
+
+message PlanRequest {
+    map<string, Node> robot_poses = 1;
+    repeated Edge weighed_edges = 2;
+}
+
+message Path {
+    repeated Node nodes = 1;
+}
+
+message PlanResponse {
+    map<string, Path> paths = 1;
+}

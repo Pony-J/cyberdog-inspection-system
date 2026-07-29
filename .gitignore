@@ -1,0 +1,71 @@
+# ROS 2 / colcon
+build/
+install/
+log/
+.colcon/
+.ros/
+
+# Models and generated inference artifacts
+*.engine
+*.plan
+*.onnx
+*.pt
+*.pth
+*.wts
+*.pdmodel
+*.pdiparams
+*.pdiparams.info
+models/
+model_zoo/
+
+# Vendor and unresolved third-party sources
+vendor/
+third_party/
+external/
+SDK/
+*.so
+*.so.*
+*.a
+
+# Runtime data and customer/site artifacts
+runtime_data/
+alarm_logs/
+captures/
+results/
+maps/
+*.pbstream
+*.bag
+*.db3
+*.mcap
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+config/local.*
+config/secrets.*
+
+# Python / CMake / editor
+__pycache__/
+*.py[cod]
+.pytest_cache/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary and generated media
+*.log
+*.tmp
+*.bak
+*~
+alarm_*.jpg
+capture_*.jpg
+debug_*.jpg

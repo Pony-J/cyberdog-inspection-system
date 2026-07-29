@@ -1,0 +1,31 @@
+# Type-C 传感器数据服务配置
+
+server:
+  host: "0.0.0.0"
+  port: 8091
+  debug: false
+
+serial:
+  # 按实际 Type-C 虚拟串口设备修改，例如 /dev/ttyACM0 或 /dev/ttyUSB0
+  port: "/dev/ttyUSB0"
+  baud_rate: 115200
+  data_bits: 8
+  stop_bits: 1
+  read_timeout_sec: 1.0
+  reconnect_interval_sec: 2.0
+
+protocol:
+  header: "[DATA:"
+  tail: "]"
+  line_delimiter: "\n"
+
+upload:
+  # 可选：收到一帧后 POST 给主控
+  callback_url: "http://ORIN_HOST:8090/api/v1/sensor/callback"
+  timeout_sec: 5
+  retry_interval_sec: 1.0
+  queue_size: 100
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

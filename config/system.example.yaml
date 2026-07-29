@@ -1,0 +1,30 @@
+system:
+  robot_name: cyberdog_demo
+  web_host: 0.0.0.0
+  web_port: 8090
+
+services:
+  inspection_base_url: http://127.0.0.1:8083
+  vision_ws_url: ws://ROBOT_HOST:9091/vision
+  sensor_callback_url: http://ORIN_HOST:8090/api/v1/sensor/callback
+
+dds:
+  orin_interface: ORIN_DDS_INTERFACE
+  robot_peer: ROBOT_DDS_ADDRESS
+
+storage:
+  data_dir: ./runtime_data
+  alarm_dir: ./runtime_data/alarms
+
+models:
+  directory: MODEL_DIRECTORY_NOT_IN_GIT
+  enabled_detectors:
+    - person
+    - fall
+    - fire
+    - smoke
+
+security:
+  # Prototype configuration. Bind to a trusted LAN only until authentication,
+  # authorization and TLS are implemented.
+  trusted_lan_only: true

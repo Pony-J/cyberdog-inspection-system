@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CyberDog Console</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar sidebar-left">
+        <div class="brand">
+          <img src="/static/logo.png" alt="Logo" class="brand-logo" />
+        </div>
+
+        <div class="mode-tabs">
+          <button class="mode-tab active" data-mode="services"><i class="ri-server-line"></i>服务</button>
+          <button class="mode-tab" data-mode="slam"><i class="ri-map-pin-add-line"></i>建图</button>
+          <button class="mode-tab" data-mode="nav"><i class="ri-navigation-line"></i>导航</button>
+          <button class="mode-tab" data-mode="inspect"><i class="ri-route-line"></i>巡检</button>
+          <button class="mode-tab" data-mode="robot"><i class="ri-gamepad-line"></i>控制</button>
+          <button class="mode-tab" data-mode="sensor"><i class="ri-temp-hot-line"></i>传感</button>
+          <button class="mode-tab" data-mode="vision"><i class="ri-eye-line"></i>视觉</button>
+        </div>
+
+        <div class="sidebar-scroll">
+
+          <!-- ═══ Services Mode ═══ -->
+          <div id="services-panels">
+            <section class="panel">
+              <div class="panel-header"><h2>快速启动</h2></div>
+              <div class="panel-body">
+                <div class="action-grid">
+                  <button id="btn-quick-slam" class="action-btn primary full-span">
+                    <i class="ri-map-2-line"></i><span>一键建图</span>
+                  </button>
+                  <button id="btn-quick-nav" class="action-btn success">
+                    <i class="ri-navigation-line"></i><span>一键导航</span>
+                  </button>
+                  <button id="btn-quick-inspect" class="action-btn info">
+                    <i class="ri-route-line"></i><span>一键巡检</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>Nav2 导航栈</h2></div>
+              <div class="panel-body">
+                <div class="service-row">
+                  <span class="dot offline" id="nav2-dot"></span>
+                  <span id="nav2-text">未运行</span>
+                </div>
+                <label class="field-label">模式</label>
+                <div class="select-wrap">
+                  <select id="nav2-mode-select">
+                    <option value="slam">SLAM 建图</option>
+                    <option value="nav">Cartographer 定位</option>
+                    <option value="amcl">AMCL 定位</option>
+                  </select>
+                  <i class="ri-arrow-down-s-line"></i>
+                </div>
+                <div class="btn-row">
+                  <button id="btn-nav2-start" class="small-btn success"><i class="ri-play-fill"></i>启动</button>
+                  <button id="btn-nav2-stop" class="small-btn danger"><i class="ri-stop-fill"></i>停止</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>巡检服务</h2></div>
+              <div class="panel-body">
+                <div class="service-row">
+                  <span class="dot offline" id="insp-svc-dot"></span>
+                  <span id="insp-svc-text">未运行</span>
+                </div>
+                <div class="btn-row">
+                  <button id="btn-insp-svc-start" class="small-btn success"><i class="ri-play-fill"></i>启动</button>
+                  <button id="btn-insp-svc-stop" class="small-btn danger"><i class="ri-stop-fill"></i>停止</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>语音控制</h2></div>
+              <div class="panel-body">
+                <div class="service-row">
+                  <span class="dot offline" id="voice-brain-dot"></span>
+                  <span id="voice-brain-text">未运行</span>
+                </div>
+                <div class="btn-row">
+                  <button id="btn-voice-brain-start" class="small-btn success"><i class="ri-mic-line"></i>启动</button>
+                  <button id="btn-voice-brain-stop" class="small-btn danger"><i class="ri-mic-off-line"></i>停止</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>全局操作</h2></div>
+              <div class="panel-body">
+                <button id="btn-stop-all" class="small-btn danger full-w"><i class="ri-close-circle-line"></i>停止所有服务</button>
+              </div>
+            </section>
+          </div>
+
+          <!-- ═══ SLAM Mode ═══ -->
+          <div id="slam-panels" class="hidden">
+            <section class="panel">
+              <div class="panel-header"><h2>建图状态</h2></div>
+              <div class="panel-body">
+                <div class="connection-pill">
+                  <span class="dot offline" id="slam-map-dot"></span>
+                  <span id="slam-map-text">等待地图数据...</span>
+                </div>
+                <div class="status-box subtle-box" data-tone="neutral">
+                  启动 SLAM 后地图实时显示。使用"控制"选项卡遥控移动机器狗。
+                </div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-header"><h2>保存地图</h2></div>
+              <div class="panel-body">
+                <label class="field-label">文件路径 (不含后缀)</label>
+                <input type="text" id="save-map-path" class="text-input" value="cyberdog_map" />
+                <div class="toggle-row" style="margin:8px 0">
+                  <span>同时导出 PGM/YAML</span>
+                  <label class="switch" for="save-export-pgm"><input type="checkbox" id="save-export-pgm" checked /><span class="slider"></span></label>
+                </div>
+                <button id="btn-save-map" class="small-btn primary full-w"><i class="ri-save-line"></i>保存地图</button>
+                <div id="save-map-progress" class="progress-bar hidden">
+                  <div class="progress-fill"></div>
+                  <span class="progress-text"></span>
+                </div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-header"><h2>显示</h2></div>
+              <div class="panel-body">
+                <div class="toggle-row">
+                  <span>代价地图</span>
+                  <label class="switch" for="slam-costmap-toggle"><input type="checkbox" id="slam-costmap-toggle" /><span class="slider"></span></label>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- ═══ Nav Mode ═══ -->
+          <div id="nav-panels" class="hidden">
+            <section class="panel">
+              <div class="panel-header"><h2>实时地图</h2></div>
+              <div class="panel-body">
+                <div class="connection-pill">
+                  <span class="dot offline" id="nav-map-dot"></span>
+                  <span id="nav-map-text">等待地图数据...</span>
+                </div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-header"><h2>地图交互</h2></div>
+              <div class="panel-body">
+                <div class="mode-grid">
+                  <button id="btn-nav-goal" class="mode-btn"><i class="ri-navigation-line"></i><span>点击导航</span></button>
+                  <button id="btn-nav-amcl" class="mode-btn"><i class="ri-drag-move-line"></i><span>设初始位姿</span></button>
+                  <button id="btn-nav-cancel" class="mode-btn neutral"><i class="ri-close-circle-line"></i><span>退出交互</span></button>
+                </div>
+                <div id="nav-interaction-hint" class="status-box subtle-box" data-tone="neutral">当前为查看模式。</div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-header"><h2>显示</h2></div>
+              <div class="panel-body">
+                <div class="toggle-row">
+                  <span>代价地图</span>
+                  <label class="switch" for="nav-costmap-toggle"><input type="checkbox" id="nav-costmap-toggle" /><span class="slider"></span></label>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- ═══ Inspect Mode ═══ -->
+          <div id="inspect-panels" class="hidden">
+            <section class="panel" id="inspect-svc-panel">
+              <div class="panel-header"><h2>巡检服务</h2></div>
+              <div class="panel-body">
+                <div class="service-row">
+                  <span class="dot offline" id="inspect-inline-dot"></span>
+                  <span id="inspect-inline-text">未运行</span>
+                </div>
+                <div id="inspect-svc-hint" class="status-box subtle-box" data-tone="error">
+                  巡检服务未启动，请先启动后才能选择地图和控制巡检。
+                </div>
+                <div class="btn-row" style="margin-top:8px">
+                  <button id="btn-inspect-quick-start" class="small-btn success full-w"><i class="ri-play-fill"></i>启动巡检服务</button>
+                  <button id="btn-inspect-quick-stop" class="small-btn danger full-w hidden"><i class="ri-stop-fill"></i>停止</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>地图场景</h2></div>
+              <div class="panel-body">
+                <label class="field-label" for="scene-select">当前地图</label>
+                <div class="select-wrap">
+                  <select id="scene-select"></select>
+                  <i class="ri-arrow-down-s-line"></i>
+                </div>
+                <button id="btn-refresh-maps" class="small-btn secondary full-w"><i class="ri-refresh-line"></i>刷新列表</button>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-header"><h2>巡检控制</h2></div>
+              <div class="panel-body">
+                <div class="action-grid">
+                  <button id="btn-initialize" class="action-btn primary"><i class="ri-route-line"></i><span>初始化</span></button>
+                  <button id="btn-start" class="action-btn success"><i class="ri-play-fill"></i><span>开始</span></button>
+                  <button id="btn-pause" class="action-btn warning"><i class="ri-pause-fill"></i><span>暂停</span></button>
+                  <button id="btn-resume" class="action-btn info"><i class="ri-skip-forward-fill"></i><span>恢复</span></button>
+                  <button id="btn-stop" class="action-btn danger full-span"><i class="ri-stop-circle-fill"></i><span>停止巡检</span></button>
+                </div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-header"><h2>表盘点位</h2></div>
+              <div class="panel-body meter-workbench">
+                <div class="status-box subtle-box" data-tone="neutral" style="margin-bottom:8px">
+                  先手动把狗开到表盘前，确认画面清晰，再点“记录当前点位”。
+                </div>
+                <label class="field-label" for="meter-point-name">点位名称</label>
+                <input id="meter-point-name" class="text-input" type="text" placeholder="例如：1号压力表" />
+                <label class="field-label" for="meter-point-type" style="margin-top:8px">表盘类型</label>
+                <div class="select-wrap">
+                  <select id="meter-point-type">
+                    <option value="pressure">pressure</option>
+                    <option value="thermo">thermo</option>
+                  </select>
+                  <i class="ri-arrow-down-s-line"></i>
+                </div>
+                <button id="btn-record-meter-point" class="small-btn success full-w" style="margin-top:8px"><i class="ri-map-pin-add-line"></i>记录当前点位</button>
+                <div class="meter-block">
+                  <div class="meter-block-title"><i class="ri-map-pin-line"></i><span>已录点位</span></div>
+                  <div id="meter-points-list" class="meter-stack"></div>
+                </div>
+                <div class="meter-block">
+                  <div class="meter-block-title"><i class="ri-route-line"></i><span>表盘路线</span></div>
+                  <div class="status-box subtle-box meter-inline-note" data-tone="neutral">
+                    路线模式：先把点位加入路线，系统逐个导航；到点后你可以切到“控制”页微调画面，再点继续去下一个点。点击“完成本点/下一点”时，当前确认读数会自动记入历史。
+                  </div>
+                  <div id="meter-route-status" class="status-box subtle-box meter-route-status" data-tone="neutral">当前没有表盘路线任务</div>
+                  <div class="btn-row meter-route-actions">
+                    <button id="btn-meter-route-start" class="small-btn success"><i class="ri-play-fill"></i>开始路线</button>
+                    <button id="btn-meter-route-arrived" class="small-btn info"><i class="ri-focus-3-line"></i>到点微调</button>
+                  </div>
+                  <div class="btn-row meter-route-actions">
+                    <button id="btn-meter-route-next" class="small-btn primary"><i class="ri-skip-forward-line"></i>完成本点/下一点</button>
+                    <button id="btn-meter-route-clear" class="small-btn danger"><i class="ri-delete-bin-line"></i>清空路线</button>
+                  </div>
+                  <div id="meter-route-list" class="meter-stack"></div>
+                </div>
+                <div class="meter-block meter-history-block">
+                  <div class="meter-block-title"><i class="ri-history-line"></i><span>表盘记录</span></div>
+                  <div id="meter-history-list" class="alarm-list meter-history-list">
+                    <div class="status-box subtle-box" data-tone="neutral">暂无已确认的表盘读数</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-header"><h2>显示</h2></div>
+              <div class="panel-body">
+                <div class="toggle-row">
+                  <span>代价地图叠加</span>
+                  <label class="switch" for="costmap-toggle"><input type="checkbox" id="costmap-toggle" /><span class="slider"></span></label>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- ═══ Robot Control Mode ═══ -->
+          <div id="robot-panels" class="hidden">
+            <section class="panel">
+              <div class="panel-header"><h2>快捷操作</h2></div>
+              <div class="panel-body">
+                <button id="btn-prepare" class="small-btn primary full-w" style="margin-bottom:8px"><i class="ri-flashlight-line"></i>一键预备 (手动+站立+TROT+相机)</button>
+                <div id="prepare-progress" class="progress-bar hidden">
+                  <div class="progress-fill"></div>
+                  <span class="progress-text"></span>
+                </div>
+                <button id="btn-estop" class="estop-btn"><i class="ri-alarm-warning-fill"></i>紧急停止</button>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>模式</h2></div>
+              <div class="panel-body">
+                <div class="chip-grid">
+                  <button class="chip" data-mode-preset="manual">手动</button>
+                  <button class="chip" data-mode-preset="default">默认</button>
+                  <button class="chip" data-mode-preset="lock">锁定</button>
+                  <button class="chip" data-mode-preset="semi">半自主</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>动作</h2></div>
+              <div class="panel-body">
+                <div class="chip-grid">
+                  <button class="chip" data-order-preset="stand"><i class="ri-arrow-up-line"></i>站立</button>
+                  <button class="chip" data-order-preset="sit"><i class="ri-armchair-line"></i>坐下</button>
+                  <button class="chip" data-order-preset="prostrate"><i class="ri-arrow-down-double-line"></i>趴下</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>步态</h2></div>
+              <div class="panel-body">
+                <div class="chip-grid">
+                  <button class="chip" data-gait="8">TROT(8)</button>
+                  <button class="chip" data-gait="1">WALK(1)</button>
+                  <button class="chip" data-gait="3">RUN(3)</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>遥控</h2></div>
+              <div class="panel-body">
+                <div class="teleop-layout">
+                  <canvas id="joystick-canvas" width="160" height="160"></canvas>
+                  <div class="turn-col">
+                    <button id="btn-turn-left" class="turn-btn"><i class="ri-anticlockwise-2-line"></i>左转</button>
+                    <button id="btn-turn-right" class="turn-btn"><i class="ri-clockwise-2-line"></i>右转</button>
+                  </div>
+                </div>
+                <div class="speed-row">
+                  <span>速度</span>
+                  <button id="btn-spd-down" class="spd-btn">−</button>
+                  <span id="spd-display" class="spd-val">0.15</span>
+                  <button id="btn-spd-up" class="spd-btn">+</button>
+                </div>
+                <div class="helper-text">键盘: W前 S后 A左 D右 Q左转 E右转 空格停</div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>相机</h2></div>
+              <div class="panel-body">
+                <div class="toggle-row">
+                  <span>数据流</span>
+                  <label class="switch" for="camera-toggle"><input type="checkbox" id="camera-toggle" /><span class="slider"></span></label>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- ═══ Sensor Mode ═══ -->
+          <div id="sensor-panels" class="hidden">
+            <section class="panel">
+              <div class="panel-header"><h2>连接状态</h2></div>
+              <div class="panel-body">
+                <div class="service-row">
+                  <span class="dot offline" id="sensor-svc-dot"></span>
+                  <span id="sensor-svc-text">等待数据...</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>实时数据</h2></div>
+              <div class="panel-body">
+                <div class="sensor-grid">
+                  <div class="sensor-item">
+                    <i class="ri-temp-hot-line sensor-icon temp"></i>
+                    <div class="sensor-info">
+                      <span class="sensor-label">温度</span>
+                      <span class="sensor-value" id="sensor-temp">--</span>
+                    </div>
+                  </div>
+                  <div class="sensor-item">
+                    <i class="ri-water-percent-line sensor-icon humi"></i>
+                    <div class="sensor-info">
+                      <span class="sensor-label">湿度</span>
+                      <span class="sensor-value" id="sensor-humi">--</span>
+                    </div>
+                  </div>
+                  <div class="sensor-item">
+                    <i class="ri-sun-line sensor-icon light"></i>
+                    <div class="sensor-info">
+                      <span class="sensor-label">光照</span>
+                      <span class="sensor-value" id="sensor-light">--</span>
+                    </div>
+                  </div>
+                  <div class="sensor-item">
+                    <i class="ri-alarm-warning-line sensor-icon sound"></i>
+                    <div class="sensor-info">
+                      <span class="sensor-label">烟雾</span>
+                      <span class="sensor-value" id="sensor-sound">--</span>
+                    </div>
+                  </div>
+                  <div class="sensor-item">
+                    <i class="ri-flashlight-line sensor-icon ir"></i>
+                    <div class="sensor-info">
+                      <span class="sensor-label">红外</span>
+                      <span class="sensor-value" id="sensor-ir">--</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="sensor-time" id="sensor-time">等待数据...</div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>统计</h2></div>
+              <div class="panel-body">
+                <pre id="sensor-stats" class="robot-status-pre">等待数据...</pre>
+              </div>
+            </section>
+          </div>
+
+          <!-- ═══ Vision Mode ═══ -->
+          <div id="vision-panels" class="hidden">
+            <section class="panel">
+              <div class="panel-header"><h2>连接状态</h2></div>
+              <div class="panel-body">
+                <div class="service-row">
+                  <span class="dot offline" id="vision-dot"></span>
+                  <span id="vision-text">未连接</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>检测状态</h2></div>
+              <div class="panel-body">
+                <div class="sensor-grid">
+                  <div class="sensor-item">
+                    <i class="ri-speed-line sensor-icon light"></i>
+                    <div class="sensor-info">
+                      <span class="sensor-label">FPS</span>
+                      <span class="sensor-value" id="vision-fps">--</span>
+                    </div>
+                  </div>
+                  <div class="sensor-item">
+                    <i class="ri-timer-line sensor-icon humi"></i>
+                    <div class="sensor-info">
+                      <span class="sensor-label">延迟</span>
+                      <span class="sensor-value" id="vision-latency">--</span>
+                    </div>
+                  </div>
+                </div>
+                <div id="vision-enabled" class="status-box subtle-box" data-tone="neutral">等待数据...</div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>检测器控制</h2></div>
+              <div class="panel-body">
+                <div id="vision-detector-toggles" class="chip-grid"></div>
+                <div class="btn-row" style="margin-top:8px">
+                  <button id="btn-det-all" class="small-btn success"><i class="ri-checkbox-circle-line"></i>全选</button>
+                  <button id="btn-det-none" class="small-btn danger"><i class="ri-close-circle-line"></i>全关</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>检测结果</h2></div>
+              <div class="panel-body">
+                <div id="vision-counts" class="status-box subtle-box" data-tone="neutral">无检测数据</div>
+                <pre id="vision-detections" class="robot-status-pre">等待数据...</pre>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>实时画面</h2></div>
+              <div class="panel-body">
+                <button id="btn-camera-toggle" class="small-btn info full-w"><i class="ri-camera-line"></i>打开画面窗口</button>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><h2>调试</h2></div>
+              <div class="panel-body">
+                <pre id="vision-debug" class="robot-status-pre">{}</pre>
+              </div>
+            </section>
+          </div>
+
+        </div>
+      </aside>
+
+      <main class="workspace workspace-center">
+        <div class="workspace-header">
+          <div>
+            <h2 id="view-title">服务管理</h2>
+            <p id="view-subtitle">启动和管理 Nav2、巡检等核心服务</p>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="legend-dot robot"></span>机器狗</span>
+            <span class="legend-item"><span class="legend-dot global"></span>全局路径</span>
+            <span class="legend-item"><span class="legend-dot local"></span>局部路径</span>
+          </div>
+        </div>
+        <div id="map-shell" class="map-shell">
+          <div class="map-shell-bg"></div>
+          <canvas id="map-canvas"></canvas>
+          <div id="canvas-loading" class="canvas-loading">
+            <div class="spinner" id="loading-spinner"></div>
+            <i class="ri-map-2-line loading-icon hidden" id="loading-icon"></i>
+            <span>暂无地图 — 请先启动建图或导航服务</span>
+          </div>
+        </div>
+      </main>
+
+      <aside class="sidebar sidebar-right">
+        <div class="sidebar-title">状态面板</div>
+        <div class="sidebar-scroll">
+          <section class="panel">
+            <div class="panel-header"><h2>连接</h2></div>
+            <div class="panel-body">
+              <div class="connection-pill">
+                <span class="dot offline" id="connection-dot"></span>
+                <span id="connection-text">正在连接</span>
+              </div>
+              <div id="status-box" class="status-box" data-tone="neutral">等待服务就绪...</div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header"><h2>服务</h2></div>
+            <div class="panel-body" id="right-services-box">
+              <div class="svc-pill"><span class="dot offline" id="r-nav2-dot"></span><span id="r-nav2-text">Nav2: 未运行</span></div>
+              <div class="svc-pill"><span class="dot offline" id="r-insp-dot"></span><span id="r-insp-text">巡检: 未运行</span></div>
+              <div class="svc-pill"><span class="dot offline" id="r-voice-brain-dot"></span><span id="r-voice-brain-text">语音: 未运行</span></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header"><h2>机器人</h2></div>
+            <div class="panel-body">
+              <pre id="robot-status-box" class="robot-status-pre">等待状态...</pre>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header"><h2>位姿</h2></div>
+            <div class="panel-body">
+              <div id="pose-preview" class="pose-box">等待定位数据...</div>
+            </div>
+          </section>
+
+          <details class="panel" id="alarm-panel">
+            <summary>报警历史 <span id="alarm-badge" class="alarm-badge hidden">0</span></summary>
+            <div class="panel-body">
+              <div id="alarm-history-list" class="alarm-list">
+                <div class="status-box subtle-box" data-tone="neutral">暂无报警记录</div>
+              </div>
+            </div>
+          </details>
+
+          <details class="panel debug-panel">
+            <summary>调试</summary>
+            <div class="panel-body"><pre id="debug-box">{}</pre></div>
+          </details>
+        </div>
+      </aside>
+    </div>
+
+    <div id="camera-window" class="camera-window hidden">
+      <div class="camera-titlebar" id="camera-titlebar"><span>实时画面</span><button id="camera-close" class="camera-close-btn">&times;</button></div>
+      <img id="camera-img" class="camera-img" src="" alt="Camera feed" />
+    </div>
+
+    <div id="alarm-modal" class="alarm-modal hidden">
+      <div class="alarm-modal-overlay" id="alarm-modal-overlay"></div>
+      <div class="alarm-modal-content">
+        <div class="alarm-modal-titlebar">
+          <span id="alarm-modal-title">报警详情</span>
+          <button id="alarm-modal-close" class="camera-close-btn">&times;</button>
+        </div>
+        <img id="alarm-modal-img" class="alarm-modal-img" src="" alt="Alarm image" />
+        <div id="alarm-modal-info" class="alarm-modal-info"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

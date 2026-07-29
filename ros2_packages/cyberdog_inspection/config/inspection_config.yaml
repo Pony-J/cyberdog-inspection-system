@@ -1,0 +1,36 @@
+ns: "mi1035085"
+
+http:
+  port: 8083
+
+maps_directory: "./runtime_data/maps"
+
+visualization:
+  enabled: true
+  gif_output_directory: "./runtime_data/inspection/gifs"
+  debug_map_output_directory: "./runtime_data/inspection/debug_maps"
+  gif_frame_delay_ms: 80
+  gif_draw_interval: 5
+
+python_server:
+  script: ""
+
+carrot_chaser:
+  forward_step: 2.0
+  tol: 1.0
+
+mstc:
+  robot_size: 0.5
+  min_obs_radius: 0.1
+  grpc_port: 50051
+  downsample_interval: 0.1
+  mode: "path"
+  coverage_interval: 1.1
+
+nav2:
+  action_name: "navigate_to_pose"
+  frame_id: "map"
+  robot_frame: "base_footprint_fixed"
+  wait_for_server_timeout_sec: 10.0
+
+navigation_enabled: true

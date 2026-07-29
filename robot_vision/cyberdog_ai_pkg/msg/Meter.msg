@@ -1,0 +1,12 @@
+sensor_msgs/RegionOfInterest roi
+uint8 TYPE_PRESSURE=0
+uint8 TYPE_THERMO=1
+uint8 meter_type
+string meter_label
+float32 value
+string unit
+bool valid_depth
+float32 x
+float32 y
+float32 z
+string note

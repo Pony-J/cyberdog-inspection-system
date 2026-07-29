@@ -1,0 +1,9 @@
+string[] detectors
+---
+bool success
+string message
+string[] desired
+string[] running
+string[] available
+string[] unavailable
+string[] failed
